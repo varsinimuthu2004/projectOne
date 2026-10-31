@@ -1,0 +1,1018 @@
+1. Maven Configuration
+pom.xml
+
+(Added Bean Validation API, Hibernate Validator, and SLF4J dependencies)
+
+xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>Spring-Web-Demo-New</groupId>
+	<artifactId>Spring-Web-Demo-New</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>5.3.39</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.33</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>5.3.39</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>5.3.39</version>
+			<scope>compile</scope>
+		</dependency>
+		<!-- JSTL -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.2</version>
+			<scope>compile</scope>
+		</dependency>
+		<!-- Servlet API for Tomcat 9.0 (javax.servlet) -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>4.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- Bean Validation API (JSR-380) -->
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>2.0.1.Final</version>
+		</dependency>
+		<!-- Hibernate Validator (Bean Validation Implementation) -->
+		<dependency>
+			<groupId>org.hibernate.validator</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>6.2.5.Final</version>
+		</dependency>
+		<!-- SLF4J Logging API and Simple Logger -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.36</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.36</version>
+		</dependency>
+		<!-- JUnit for Unit Testing -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.2</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<name>Spring-Web-Demo-New</name>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.13.0</version>
+				<configuration>
+					<release>25</release>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>3.2.3</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+2. Exception Package (com.deloitte.exception)
+EmailAlreadyExistsException.java
+
+(Path: src/main/java/com/deloitte/exception/EmailAlreadyExistsException.java)
+
+java
+package com.deloitte.exception;
+public class EmailAlreadyExistsException extends RuntimeException {
+	private static final long serialVersionUID = 1L;
+	public EmailAlreadyExistsException(String message) {
+		super(message);
+	}
+}
+SeatNotAvailableException.java
+
+(Path: src/main/java/com/deloitte/exception/SeatNotAvailableException.java)
+
+java
+package com.deloitte.exception;
+public class SeatNotAvailableException extends RuntimeException {
+	private static final long serialVersionUID = 1L;
+	public SeatNotAvailableException(String message) {
+		super(message);
+	}
+}
+FlightNotFoundException.java
+
+(Path: src/main/java/com/deloitte/exception/FlightNotFoundException.java)
+
+java
+package com.deloitte.exception;
+public class FlightNotFoundException extends RuntimeException {
+	private static final long serialVersionUID = 1L;
+	public FlightNotFoundException(String message) {
+		super(message);
+	}
+}
+GlobalExceptionHandler.java
+
+(Path: src/main/java/com/deloitte/exception/GlobalExceptionHandler.java)
+
+java
+package com.deloitte.exception;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+@ControllerAdvice
+public class GlobalExceptionHandler {
+	private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+	// 1. Business Exception: Email Already Registered
+	@ExceptionHandler(EmailAlreadyExistsException.class)
+	public String handleEmailAlreadyExists(EmailAlreadyExistsException ex, Model model) {
+		logger.warn("Business Exception - Email already exists: {}", ex.getMessage());
+		model.addAttribute("errorMessage", ex.getMessage());
+		return "error";
+	}
+	// 2. Business Exception: Insufficient Seats Available
+	@ExceptionHandler(SeatNotAvailableException.class)
+	public String handleSeatNotAvailable(SeatNotAvailableException ex, Model model) {
+		logger.warn("Business Exception - Seat unavailable: {}", ex.getMessage());
+		model.addAttribute("errorMessage", ex.getMessage());
+		return "error";
+	}
+	// 3. Business Exception: Flight Not Found
+	@ExceptionHandler(FlightNotFoundException.class)
+	public String handleFlightNotFound(FlightNotFoundException ex, Model model) {
+		logger.warn("Business Exception - Flight not found: {}", ex.getMessage());
+		model.addAttribute("errorMessage", ex.getMessage());
+		return "error";
+	}
+	// 4. Technical / General Exception: System, SQL, or Unexpected Runtime Errors
+	@ExceptionHandler(Exception.class)
+	public String handleGeneralException(Exception ex, Model model) {
+		logger.error("Technical Exception caught by GlobalExceptionHandler: ", ex);
+		model.addAttribute("errorMessage",
+				ex.getMessage() != null ? ex.getMessage() : "An unexpected server error occurred. Please try again.");
+		return "error";
+	}
+}
+3. Form Validation DTOs (com.deloitte.dto)
+SignUpDto.java
+
+(Path: src/main/java/com/deloitte/dto/SignUpDto.java)
+
+java
+package com.deloitte.dto;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+public class SignUpDto {
+	@NotNull(message = "Email is required")
+	@Size(min = 5, max = 100, message = "Email must be between 5 and 100 characters")
+	@Email(message = "Please enter a valid email format (e.g. user@example.com)")
+	private String email;
+	@NotNull(message = "Password is required")
+	@Size(min = 9, message = "Password must be greater than 8 characters")
+	private String password;
+	@NotNull(message = "Role is required")
+	@Size(min = 4, max = 5, message = "Role must be 'user' or 'admin'")
+	private String role; // 'user' or 'admin'
+	public SignUpDto() {
+	}
+	public SignUpDto(String email, String password, String role) {
+		this.email = email;
+		this.password = password;
+		this.role = role;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	public String getRole() {
+		return role;
+	}
+	public void setRole(String role) {
+		this.role = role;
+	}
+	@Override
+	public String toString() {
+		return "SignUpDto [email=" + email + ", role=" + role + "]";
+	}
+}
+LoginDto.java
+
+(Path: src/main/java/com/deloitte/dto/LoginDto.java)
+
+java
+package com.deloitte.dto;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+public class LoginDto {
+	@NotNull(message = "Email is required")
+	@Size(min = 5, max = 100, message = "Email length must be between 5 and 100 characters")
+	@Email(message = "Please enter a valid email format")
+	private String email;
+	@NotNull(message = "Password is required")
+	@Size(min = 1, message = "Password cannot be empty")
+	private String password;
+	public LoginDto() {
+	}
+	public LoginDto(String email, String password) {
+		this.email = email;
+		this.password = password;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	@Override
+	public String toString() {
+		return "LoginDto [email=" + email + "]";
+	}
+}
+PassengerDto.java
+
+(Path: src/main/java/com/deloitte/dto/PassengerDto.java)
+
+java
+package com.deloitte.dto;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+public class PassengerDto {
+	@NotNull(message = "Passenger name is required")
+	@Size(min = 2, max = 50, message = "Passenger name must be between 2 and 50 characters")
+	private String passengerName;
+	@NotNull(message = "Age is required")
+	private Integer age;
+	@NotNull(message = "Gender is required")
+	@Size(min = 4, max = 6, message = "Gender must be selected (male, female, other)")
+	private String gender; // 'male', 'female', 'other'
+	public PassengerDto() {
+	}
+	public PassengerDto(String passengerName, Integer age, String gender) {
+		this.passengerName = passengerName;
+		this.age = age;
+		this.gender = gender;
+	}
+	public String getPassengerName() {
+		return passengerName;
+	}
+	public void setPassengerName(String passengerName) {
+		this.passengerName = passengerName;
+	}
+	public Integer getAge() {
+		return age;
+	}
+	public void setAge(Integer age) {
+		this.age = age;
+	}
+	public String getGender() {
+		return gender;
+	}
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+	@Override
+	public String toString() {
+		return "PassengerDto [passengerName=" + passengerName + ", age=" + age + ", gender=" + gender + "]";
+	}
+}
+BookingRequestDto.java (New - Demonstrates Validating Nested Objects)
+
+(Path: src/main/java/com/deloitte/dto/BookingRequestDto.java)
+
+java
+package com.deloitte.dto;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+public class BookingRequestDto {
+	@NotNull(message = "Flight ID is required")
+	private Long flightId;
+	@NotNull(message = "Journey date cannot be null")
+	@Size(min = 10, max = 10, message = "Journey date must be in YYYY-MM-DD format")
+	private String journeyDate;
+	@NotNull(message = "Number of passengers is required")
+	private Integer numberOfPassengers;
+	// Server-side validation of nested object using @Valid
+	@Valid
+	@NotNull(message = "Lead passenger details cannot be null")
+	private PassengerDto leadPassenger;
+	public BookingRequestDto() {
+	}
+	public BookingRequestDto(Long flightId, String journeyDate, Integer numberOfPassengers,
+			PassengerDto leadPassenger) {
+		this.flightId = flightId;
+		this.journeyDate = journeyDate;
+		this.numberOfPassengers = numberOfPassengers;
+		this.leadPassenger = leadPassenger;
+	}
+	public Long getFlightId() {
+		return flightId;
+	}
+	public void setFlightId(Long flightId) {
+		this.flightId = flightId;
+	}
+	public String getJourneyDate() {
+		return journeyDate;
+	}
+	public void setJourneyDate(String journeyDate) {
+		this.journeyDate = journeyDate;
+	}
+	public Integer getNumberOfPassengers() {
+		return numberOfPassengers;
+	}
+	public void setNumberOfPassengers(Integer numberOfPassengers) {
+		this.numberOfPassengers = numberOfPassengers;
+	}
+	public PassengerDto getLeadPassenger() {
+		return leadPassenger;
+	}
+	public void setLeadPassenger(PassengerDto leadPassenger) {
+		this.leadPassenger = leadPassenger;
+	}
+	@Override
+	public String toString() {
+		return "BookingRequestDto [flightId=" + flightId + ", journeyDate=" + journeyDate + ", numberOfPassengers="
+				+ numberOfPassengers + ", leadPassenger=" + leadPassenger + "]";
+	}
+}
+4. Service & Controllers (Validation, Logging & Exception Integration)
+UserServiceImpl.java
+
+(Path: src/main/java/com/deloitte/service/UserServiceImpl.java)
+
+java
+package com.deloitte.service;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.deloitte.dao.UserDao;
+import com.deloitte.dto.LoginDto;
+import com.deloitte.dto.SignUpDto;
+import com.deloitte.exception.EmailAlreadyExistsException;
+import com.deloitte.model.User;
+@Service
+public class UserServiceImpl implements UserService {
+	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+	@Autowired
+	private UserDao userDao;
+	public UserServiceImpl() {
+	}
+	@Autowired
+	public UserServiceImpl(UserDao userDao) {
+		this.userDao = userDao;
+	}
+	@Override
+	public int signup(SignUpDto signUpDto) {
+		if (signUpDto == null || signUpDto.getEmail() == null || signUpDto.getPassword() == null
+				|| signUpDto.getRole() == null) {
+			logger.warn("Signup attempt with null or incomplete details.");
+			return 0;
+		}
+		String email = signUpDto.getEmail().trim();
+		String password = signUpDto.getPassword().trim();
+		String role = signUpDto.getRole().trim().toLowerCase();
+		logger.info("Attempting to register user with email: {}", email);
+		if (email.isEmpty() || !email.contains("@")) {
+			logger.warn("Invalid email format for: {}", email);
+			return 0;
+		}
+		if (password.length() <= 8) {
+			logger.warn("Password too short for user: {}", email);
+			return -2; // Password too short
+		}
+		// Business Exception: Check if email already exists in database
+		User existing = userDao.getUserByEmail(email);
+		if (existing != null) {
+			logger.warn("Email already exists in database: {}", email);
+			throw new EmailAlreadyExistsException("The email '" + email + "' is already registered. Please login or use a different email.");
+		}
+		signUpDto.setEmail(email);
+		signUpDto.setPassword(password);
+		signUpDto.setRole(role);
+		int rows = userDao.insertUser(signUpDto);
+		logger.info("User registered successfully. Rows affected: {}", rows);
+		return rows;
+	}
+	@Override
+	public User login(LoginDto loginDto) {
+		if (loginDto == null || loginDto.getEmail() == null || loginDto.getPassword() == null) {
+			logger.warn("Login attempt with null credentials.");
+			return null;
+		}
+		String email = loginDto.getEmail().trim();
+		String password = loginDto.getPassword().trim();
+		logger.info("Attempting login for user: {}", email);
+		if (email.isEmpty() || password.isEmpty()) {
+			return null;
+		}
+		User user = userDao.getUserByEmailAndPassword(email, password);
+		if (user != null) {
+			logger.info("Login successful for user: {} with role: {}", email, user.getRole());
+		} else {
+			logger.warn("Login failed for user: {}. Invalid email or password.", email);
+		}
+		return user;
+	}
+	@Override
+	public User getUserByEmail(String email) {
+		if (email == null) {
+			return null;
+		}
+		return userDao.getUserByEmail(email.trim());
+	}
+	@Override
+	public User getUserById(long userId) {
+		return userDao.getUserById(userId);
+	}
+	@Override
+	public boolean updatePassword(long userId, String newPassword) {
+		if (newPassword == null || newPassword.trim().length() <= 8) {
+			logger.warn("Password update rejected: new password must be greater than 8 characters.");
+			return false;
+		}
+		logger.info("Updating password for user ID: {}", userId);
+		return userDao.updatePassword(userId, newPassword.trim()) == 1;
+	}
+	@Override
+	public List<User> getAllUsers() {
+		return userDao.getAllUsers();
+	}
+}
+UserController.java
+
+(Path: src/main/java/com/deloitte/controller/UserController.java)
+
+java
+package com.deloitte.controller;
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.deloitte.dto.LoginDto;
+import com.deloitte.dto.SignUpDto;
+import com.deloitte.model.User;
+import com.deloitte.service.UserService;
+@Controller
+@RequestMapping("/user")
+public class UserController {
+	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+	@Autowired
+	private UserService userService;
+	@GetMapping("/signup")
+	public String signupPage(Model model) {
+		logger.info("Accessing Sign-Up page");
+		model.addAttribute("signUpDto", new SignUpDto());
+		return "signup";
+	}
+	@PostMapping("/signup")
+	public String processSignup(@Valid @ModelAttribute("signUpDto") SignUpDto signUpDto,
+			BindingResult bindingResult, Model model) {
+		logger.info("Received signup request for: {}", signUpDto.getEmail());
+		// 1. Form Validation using BindingResult and @Valid annotations
+		if (bindingResult.hasErrors()) {
+			String firstError = bindingResult.getFieldError().getDefaultMessage();
+			logger.warn("Form validation failed on signup: {}", firstError);
+			model.addAttribute("errorMsg", firstError);
+			model.addAttribute("signUpDto", signUpDto);
+			return "signup";
+		}
+		// 2. Call service layer (throws custom EmailAlreadyExistsException if email exists)
+		int result = userService.signup(signUpDto);
+		if (result == 1) {
+			logger.info("User registered successfully: {}", signUpDto.getEmail());
+			model.addAttribute("successMsg", "Sign Up successful! Please login with your credentials.");
+			model.addAttribute("loginDto", new LoginDto(signUpDto.getEmail(), ""));
+			return "login";
+		} else if (result == -2) {
+			model.addAttribute("errorMsg", "Password must be greater than 8 characters.");
+			model.addAttribute("signUpDto", signUpDto);
+			return "signup";
+		} else {
+			model.addAttribute("errorMsg", "Registration failed. Please verify your details.");
+			model.addAttribute("signUpDto", signUpDto);
+			return "signup";
+		}
+	}
+	@GetMapping("/login")
+	public String loginPage(@RequestParam(required = false) String redirect, Model model) {
+		logger.info("Accessing Login page");
+		model.addAttribute("loginDto", new LoginDto());
+		return "login";
+	}
+	@PostMapping("/login")
+	public String processLogin(@Valid @ModelAttribute("loginDto") LoginDto loginDto,
+			BindingResult bindingResult, HttpSession session, Model model) {
+		logger.info("Received login request for: {}", loginDto.getEmail());
+		// Form Validation using BindingResult
+		if (bindingResult.hasErrors()) {
+			String firstError = bindingResult.getFieldError().getDefaultMessage();
+			logger.warn("Form validation failed on login: {}", firstError);
+			model.addAttribute("errorMsg", firstError);
+			model.addAttribute("loginDto", loginDto);
+			return "login";
+		}
+		User user = userService.login(loginDto);
+		if (user != null) {
+			logger.info("User {} logged in successfully as {}", user.getEmail(), user.getRole());
+			session.setAttribute("user", user);
+			// Check if there was a redirected flight booking attempt
+			Long redirectFlightId = (Long) session.getAttribute("redirectFlightId");
+			if (redirectFlightId != null) {
+				session.removeAttribute("redirectFlightId");
+				return "redirect:/booking/form?flightId=" + redirectFlightId;
+			}
+			if ("admin".equalsIgnoreCase(user.getRole())) {
+				return "redirect:/admin/dashboard";
+			} else {
+				return "redirect:/user/dashboard";
+			}
+		} else {
+			logger.warn("Authentication failed for: {}", loginDto.getEmail());
+			model.addAttribute("errorMsg", "Invalid email or password. Please try again.");
+			model.addAttribute("loginDto", loginDto);
+			return "login";
+		}
+	}
+	@GetMapping("/logout")
+	public String logout(HttpSession session) {
+		User user = (User) session.getAttribute("user");
+		if (user != null) {
+			logger.info("User logged out: {}", user.getEmail());
+		}
+		session.invalidate();
+		return "redirect:/user/login";
+	}
+	@GetMapping("/dashboard")
+	public String dashboard(HttpSession session, Model model) {
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			logger.warn("Unauthorized access to user dashboard. Redirecting to login.");
+			return "redirect:/user/login";
+		}
+		model.addAttribute("user", user);
+		return "user-dashboard";
+	}
+	@GetMapping("/profile")
+	public String profile(HttpSession session, Model model) {
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			return "redirect:/user/login";
+		}
+		model.addAttribute("user", user);
+		return "profile";
+	}
+	@PostMapping("/profile")
+	public String updateProfile(@RequestParam String newPassword, HttpSession session, Model model) {
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			return "redirect:/user/login";
+		}
+		if (newPassword == null || newPassword.trim().length() <= 8) {
+			logger.warn("Profile update failed: password length <= 8 for user {}", user.getEmail());
+			model.addAttribute("errorMsg", "Password must be greater than 8 characters.");
+			model.addAttribute("user", user);
+			return "profile";
+		}
+		boolean ok = userService.updatePassword(user.getUserId(), newPassword);
+		if (ok) {
+			logger.info("Password updated successfully for user ID {}", user.getUserId());
+			user.setPassword(newPassword.trim());
+			session.setAttribute("user", user);
+			model.addAttribute("successMsg", "Password updated successfully!");
+		} else {
+			logger.error("Failed to update password in database for user ID {}", user.getUserId());
+			model.addAttribute("errorMsg", "Failed to update password.");
+		}
+		model.addAttribute("user", user);
+		return "profile";
+	}
+}
+BookingController.java
+
+(Path: src/main/java/com/deloitte/controller/BookingController.java)
+
+java
+package com.deloitte.controller;
+import java.time.LocalDate;
+import java.util.List;
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.deloitte.dto.BookingDraftDto;
+import com.deloitte.dto.PassengerDto;
+import com.deloitte.exception.FlightNotFoundException;
+import com.deloitte.exception.SeatNotAvailableException;
+import com.deloitte.model.Booking;
+import com.deloitte.model.Flight;
+import com.deloitte.model.Ticket;
+import com.deloitte.model.User;
+import com.deloitte.service.BookingService;
+import com.deloitte.service.FlightService;
+@Controller
+@RequestMapping("/booking")
+public class BookingController {
+	private static final Logger logger = LoggerFactory.getLogger(BookingController.class);
+	@Autowired
+	private FlightService flightService;
+	@Autowired
+	private BookingService bookingService;
+	@GetMapping("/form")
+	public String bookingForm(@RequestParam long flightId, HttpSession session, Model model) {
+		logger.info("Opening booking form for Flight ID: {}", flightId);
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			logger.warn("Unauthenticated user attempted to book flight. Redirecting to login.");
+			session.setAttribute("redirectFlightId", flightId);
+			return "redirect:/user/login";
+		}
+		Flight flight = flightService.getFlightById(flightId);
+		if (flight == null) {
+			logger.warn("Flight with ID {} not found. Throwing FlightNotFoundException.", flightId);
+			throw new FlightNotFoundException("Flight not found with ID: " + flightId);
+		}
+		model.addAttribute("flight", flight);
+		model.addAttribute("minDate", LocalDate.now().toString());
+		return "booking-form";
+	}
+	@PostMapping("/form")
+	public String processBookingForm(@RequestParam long flightId, @RequestParam String journeyDate,
+			@RequestParam int numberOfPassengers, HttpSession session, Model model) {
+		logger.info("Processing booking form: flightId={}, journeyDate={}, passengers={}", flightId, journeyDate,
+				numberOfPassengers);
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			session.setAttribute("redirectFlightId", flightId);
+			return "redirect:/user/login";
+		}
+		Flight flight = flightService.getFlightById(flightId);
+		if (flight == null) {
+			throw new FlightNotFoundException("Flight not found with ID: " + flightId);
+		}
+		if (numberOfPassengers < 1 || numberOfPassengers > 10) {
+			logger.warn("Invalid passenger count: {}", numberOfPassengers);
+			model.addAttribute("errorMsg", "Number of passengers must be between 1 and 10.");
+			model.addAttribute("flight", flight);
+			model.addAttribute("minDate", LocalDate.now().toString());
+			return "booking-form";
+		}
+		if (journeyDate == null || journeyDate.trim().isEmpty()) {
+			logger.warn("Empty journey date submitted.");
+			model.addAttribute("errorMsg", "Please select a valid journey date.");
+			model.addAttribute("flight", flight);
+			model.addAttribute("minDate", LocalDate.now().toString());
+			return "booking-form";
+		}
+		// Check availability of seats
+		int availableSeats = bookingService.getAvailableSeats(flightId, journeyDate);
+		if (availableSeats < numberOfPassengers) {
+			logger.warn("Seats unavailable on {} for flight {}. Available: {}, Requested: {}", journeyDate,
+					flight.getFlightNumber(), availableSeats, numberOfPassengers);
+			throw new SeatNotAvailableException("Seat unavailable! Only " + availableSeats + " seats remain on "
+					+ journeyDate + " for flight " + flight.getFlightNumber() + ".");
+		}
+		// Create draft in session
+		BookingDraftDto draft = new BookingDraftDto();
+		draft.setFlightId(flight.getFlightId());
+		draft.setFlightNumber(flight.getFlightNumber());
+		draft.setSource(flight.getSource());
+		draft.setDestination(flight.getDestination());
+		draft.setDepartureTime(flight.getDepartureTime());
+		draft.setArrivalTime(flight.getArrivalTime());
+		draft.setPricePerSeat(flight.getPricePerSeat());
+		draft.setJourneyDate(journeyDate);
+		draft.setNumberOfPassengers(numberOfPassengers);
+		draft.setTotalPrice(numberOfPassengers * flight.getPricePerSeat());
+		session.setAttribute("bookingDraft", draft);
+		return "redirect:/booking/passenger";
+	}
+	@GetMapping("/passenger")
+	public String addPassengerPage(HttpSession session, Model model) {
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			return "redirect:/user/login";
+		}
+		BookingDraftDto draft = (BookingDraftDto) session.getAttribute("bookingDraft");
+		if (draft == null) {
+			logger.warn("No active booking draft found in session. Redirecting to home.");
+			return "redirect:/home";
+		}
+		int passengerNumber = draft.getPassengers().size() + 1;
+		int totalPassengers = draft.getNumberOfPassengers();
+		int remainingPassengers = totalPassengers - passengerNumber;
+		boolean isLastPassenger = (passengerNumber == totalPassengers);
+		model.addAttribute("draft", draft);
+		model.addAttribute("passengerNumber", passengerNumber);
+		model.addAttribute("totalPassengers", totalPassengers);
+		model.addAttribute("remainingPassengers", remainingPassengers);
+		model.addAttribute("isLastPassenger", isLastPassenger);
+		model.addAttribute("passengerDto", new PassengerDto());
+		return "add-passenger";
+	}
+	@PostMapping("/passenger")
+	public String processAddPassenger(@Valid @ModelAttribute("passengerDto") PassengerDto passengerDto,
+			BindingResult bindingResult, HttpSession session, Model model) {
+		logger.info("Processing add passenger: {}", passengerDto.getPassengerName());
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			return "redirect:/user/login";
+		}
+		BookingDraftDto draft = (BookingDraftDto) session.getAttribute("bookingDraft");
+		if (draft == null) {
+			return "redirect:/home";
+		}
+		// Server-side validation using BindingResult
+		if (bindingResult.hasErrors()) {
+			String firstError = bindingResult.getFieldError().getDefaultMessage();
+			logger.warn("Passenger form validation failed: {}", firstError);
+			int passengerNumber = draft.getPassengers().size() + 1;
+			int totalPassengers = draft.getNumberOfPassengers();
+			int remainingPassengers = totalPassengers - passengerNumber;
+			boolean isLastPassenger = (passengerNumber == totalPassengers);
+			model.addAttribute("errorMsg", firstError);
+			model.addAttribute("draft", draft);
+			model.addAttribute("passengerNumber", passengerNumber);
+			model.addAttribute("totalPassengers", totalPassengers);
+			model.addAttribute("remainingPassengers", remainingPassengers);
+			model.addAttribute("isLastPassenger", isLastPassenger);
+			model.addAttribute("passengerDto", passengerDto);
+			return "add-passenger";
+		}
+		draft.addPassenger(passengerDto);
+		if (draft.getPassengers().size() < draft.getNumberOfPassengers()) {
+			return "redirect:/booking/passenger";
+		} else {
+			// All passengers entered -> Complete Booking
+			logger.info("All {} passengers added. Finalizing booking for user ID {}", draft.getNumberOfPassengers(),
+					user.getUserId());
+			long bookingId = bookingService.bookFlight(draft, user.getUserId());
+			session.removeAttribute("bookingDraft");
+			return "redirect:/booking/confirmation?bookingId=" + bookingId;
+		}
+	}
+	@GetMapping("/confirmation")
+	public String confirmationPage(@RequestParam long bookingId, HttpSession session, Model model) {
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			return "redirect:/user/login";
+		}
+		logger.info("Displaying confirmation for Booking ID: {}", bookingId);
+		Booking booking = bookingService.getBookingById(bookingId);
+		model.addAttribute("booking", booking);
+		return "booking-confirmation";
+	}
+	@GetMapping("/my-bookings")
+	public String myBookings(@RequestParam(required = false) String msg, HttpSession session, Model model) {
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			return "redirect:/user/login";
+		}
+		logger.info("Fetching bookings for user ID: {}", user.getUserId());
+		List<Booking> bookings = bookingService.getBookingsByUserId(user.getUserId());
+		model.addAttribute("bookings", bookings);
+		if (msg != null) {
+			model.addAttribute("msg", msg);
+		}
+		return "my-bookings";
+	}
+	@GetMapping("/view-tickets")
+	public String viewTickets(@RequestParam long bookingId, HttpSession session, Model model) {
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			return "redirect:/user/login";
+		}
+		logger.info("Viewing tickets for Booking ID: {}", bookingId);
+		Booking booking = bookingService.getBookingById(bookingId);
+		List<Ticket> tickets = bookingService.getTicketsForBooking(bookingId);
+		model.addAttribute("booking", booking);
+		model.addAttribute("tickets", tickets);
+		return "view-tickets";
+	}
+	@PostMapping("/cancel")
+	public String cancelBooking(@RequestParam long bookingId, HttpSession session) {
+		User user = (User) session.getAttribute("user");
+		if (user == null) {
+			return "redirect:/user/login";
+		}
+		logger.info("User ID {} requested cancellation of Booking ID {}", user.getUserId(), bookingId);
+		bookingService.cancelBooking(bookingId);
+		return "redirect:/booking/my-bookings?msg=Booking+%23" + bookingId + "+has+been+cancelled+and+seats+released.";
+	}
+}
+5. Unit Testing in Package com.deloitte.test
+UserServiceTest.java
+
+(Path: src/test/java/com/deloitte/test/UserServiceTest.java)
+
+java
+package com.deloitte.test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import org.junit.Before;
+import org.junit.Test;
+import com.deloitte.dao.UserDao;
+import com.deloitte.dto.BookingRequestDto;
+import com.deloitte.dto.LoginDto;
+import com.deloitte.dto.PassengerDto;
+import com.deloitte.dto.SignUpDto;
+import com.deloitte.exception.EmailAlreadyExistsException;
+import com.deloitte.model.User;
+import com.deloitte.service.UserService;
+import com.deloitte.service.UserServiceImpl;
+public class UserServiceTest {
+	private UserService userService;
+	private FakeUserDao fakeUserDao;
+	private Validator validator;
+	// In-memory fake DAO for clean, isolated, fast unit testing without live DB
+	static class FakeUserDao implements UserDao {
+		private List<User> db = new ArrayList<>();
+		private long nextId = 1001L;
+		@Override
+		public int insertUser(SignUpDto dto) {
+			User u = new User(nextId++, dto.getEmail(), dto.getPassword(), dto.getRole());
+			db.add(u);
+			return 1;
+		}
+		@Override
+		public User getUserByEmailAndPassword(String email, String password) {
+			for (User u : db) {
+				if (u.getEmail().equalsIgnoreCase(email) && u.getPassword().equals(password)) {
+					return u;
+				}
+			}
+			return null;
+		}
+		@Override
+		public User getUserByEmail(String email) {
+			for (User u : db) {
+				if (u.getEmail().equalsIgnoreCase(email)) {
+					return u;
+				}
+			}
+			return null;
+		}
+		@Override
+		public User getUserById(long userId) {
+			for (User u : db) {
+				if (u.getUserId() == userId) {
+					return u;
+				}
+			}
+			return null;
+		}
+		@Override
+		public int updatePassword(long userId, String newPassword) {
+			User u = getUserById(userId);
+			if (u != null) {
+				u.setPassword(newPassword);
+				return 1;
+			}
+			return 0;
+		}
+		@Override
+		public List<User> getAllUsers() {
+			return new ArrayList<>(db);
+		}
+	}
+	@Before
+	public void setUp() {
+		fakeUserDao = new FakeUserDao();
+		userService = new UserServiceImpl(fakeUserDao);
+		// Seed a known test user
+		SignUpDto existingUser = new SignUpDto("test.user@flightapp.com", "SecurePass@2026", "user");
+		fakeUserDao.insertUser(existingUser);
+		// Initialize Bean Validator
+		ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+		validator = factory.getValidator();
+	}
+	// 1. Test Signup Success
+	@Test
+	public void testSignupSuccess() {
+		SignUpDto newDto = new SignUpDto("new.user@flightapp.com", "Password@1234", "user");
+		int result = userService.signup(newDto);
+		assertEquals(1, result);
+		User saved = userService.getUserByEmail("new.user@flightapp.com");
+		assertNotNull(saved);
+		assertEquals("user", saved.getRole());
+	}
+	// 2. Test Signup Fails When Password Too Short
+	@Test
+	public void testSignupFailsWhenPasswordTooShort() {
+		SignUpDto shortPassDto = new SignUpDto("short@flightapp.com", "12345678", "user");
+		int result = userService.signup(shortPassDto);
+		assertEquals(-2, result);
+	}
+	// 3. Test Custom Business Exception: EmailAlreadyExistsException
+	@Test(expected = EmailAlreadyExistsException.class)
+	public void testSignupThrowsEmailAlreadyExistsException() {
+		SignUpDto duplicateDto = new SignUpDto("test.user@flightapp.com", "AnotherPass@2026", "user");
+		userService.signup(duplicateDto);
+	}
+	// 4. Test Login Success
+	@Test
+	public void testLoginSuccess() {
+		LoginDto loginDto = new LoginDto("test.user@flightapp.com", "SecurePass@2026");
+		User loggedIn = userService.login(loginDto);
+		assertNotNull(loggedIn);
+		assertEquals("test.user@flightapp.com", loggedIn.getEmail());
+	}
+	// 5. Test Login Failure
+	@Test
+	public void testLoginFailureInvalidPassword() {
+		LoginDto loginDto = new LoginDto("test.user@flightapp.com", "WrongPassword");
+		User loggedIn = userService.login(loginDto);
+		assertNull(loggedIn);
+	}
+	// 6. Test Validating Nested Objects (@Valid on leadPassenger)
+	@Test
+	public void testNestedObjectValidationSuccess() {
+		PassengerDto passenger = new PassengerDto("John Doe", 30, "male");
+		BookingRequestDto bookingRequest = new BookingRequestDto(5001L, "2026-11-20", 1, passenger);
+		Set<ConstraintViolation<BookingRequestDto>> violations = validator.validate(bookingRequest);
+		assertTrue("Expected no validation violations", violations.isEmpty());
+	}
+	@Test
+	public void testNestedObjectValidationFailsWhenPassengerNameIsBlank() {
+		// Passenger name length < 2 violates @Size(min = 2, max = 50)
+		PassengerDto invalidPassenger = new PassengerDto("A", 30, "male");
+		BookingRequestDto bookingRequest = new BookingRequestDto(5001L, "2026-11-20", 1, invalidPassenger);
+		Set<ConstraintViolation<BookingRequestDto>> violations = validator.validate(bookingRequest);
+		assertEquals(1, violations.size());
+		ConstraintViolation<BookingRequestDto> violation = violations.iterator().next();
+		assertEquals("leadPassenger.passengerName", violation.getPropertyPath().toString());
+	}
+}
